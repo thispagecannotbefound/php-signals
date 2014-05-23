@@ -82,23 +82,42 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @test
+     * @expectedException \ThisPageCannotBeFound\Signals\Exception\MissingArgumentsException
+     */
+    public function dispatchNoTypeArgCountMatchShouldThrow() {
+        $this->signal = new OnceSignal('stdClass');
+        $this->signal->dispatch();
+    }
+
+    /**
+     * @test
+     * @expectedException \ThisPageCannotBeFound\Signals\Exception\ValueTypeMismatchException
+     */
+    public function dispatchNativeTypeNoMatchShouldThrow() {
+        $this->signal = new OnceSignal('boolean');
+        $this->signal->dispatch(123);
+    }
+
+    /**
+     * @test
+     * @expectedException \ThisPageCannotBeFound\Signals\Exception\ValueTypeMismatchException
+     */
+    public function dispatchClassTypeNoMatchShouldThrow() {
+        $this->signal = new OnceSignal('Iterator');
+        $this->signal->dispatch(new \stdClass());
+    }
+
+    /**
+     * @test
      */
     public function getNumListenersShouldReturnListenerCount() {
         $this->assertEquals(0, $this->signal->getNumListeners());
 
+        $this->signal->addOnce('print_r');
+        $this->signal->addOnce('printf');
         $this->signal->addOnce('sprintf');
 
-        $this->assertEquals(1, $this->signal->getNumListeners());
-
-        $this->signal->addOnce('sprintf');
-
-        $this->assertEquals(2, $this->signal->getNumListeners());
-
-        $this->signal->addOnce('sprintf');
-        $this->signal->addOnce('sprintf');
-        $this->signal->addOnce('sprintf');
-
-        $this->assertEquals(5, $this->signal->getNumListeners());
+        $this->assertEquals(3, $this->signal->getNumListeners());
 
         $this->signal->removeAll();
 
@@ -161,6 +180,28 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals(0, $calledA);
         $this->assertEquals(0, $calledB);
+    }
+
+    /**
+     * @test
+     * @expectedException \ThisPageCannotBeFound\Signals\Exception\InvalidTypeException
+     */
+    public function __constructInvalidTypeShouldThrow() {
+        new OnceSignal('foo-bar');
+    }
+
+    /**
+     * @test
+     */
+    public function __constructExistingClassesInterfacesShouldAccept() {
+        new OnceSignal('ArrayIterator', 'Iterator');
+    }
+
+    /**
+     * @test
+     */
+    public function __constructNativeTypesShouldAccept() {
+        new OnceSignal('array', 'boolean', 'float', 'integer', 'object', 'resource', 'string');
     }
 
 }

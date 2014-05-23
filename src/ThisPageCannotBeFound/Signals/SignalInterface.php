@@ -3,6 +3,8 @@
 namespace ThisPageCannotBeFound\Signals;
 
 /**
+ * A Signal executes callbacks, passing optional values.
+ *
  * @author Abel de Beer <abel@thispagecannotbefound.com>
  */
 interface SignalInterface {

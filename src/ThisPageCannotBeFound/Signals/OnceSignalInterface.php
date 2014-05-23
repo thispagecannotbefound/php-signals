@@ -3,6 +3,9 @@
 namespace ThisPageCannotBeFound\Signals;
 
 /**
+ * A Signal executes callbacks, passing optional values. This signal removes its
+ * listeners after they have been executed.
+ *
  * @author Abel de Beer <abel@thispagecannotbefound.com>
  */
 interface OnceSignalInterface {

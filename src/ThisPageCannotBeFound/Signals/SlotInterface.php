@@ -3,6 +3,8 @@
 namespace ThisPageCannotBeFound\Signals;
 
 /**
+ * A Slot is a signal listener configuration object.
+ *
  * @author Abel de Beer <abel@thispagecannotbefound.com>
  */
 interface SlotInterface {

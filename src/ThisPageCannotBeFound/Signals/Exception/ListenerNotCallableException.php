@@ -5,8 +5,12 @@ namespace ThisPageCannotBeFound\Signals\Exception;
 /**
  * @author Abel de Beer <abel@thispagecannotbefound.com>
  */
-class ListenerNotCallableException extends \RuntimeException {
+class ListenerNotCallableException extends \RuntimeException implements ExceptionInterface {
 
+    /**
+     * @param callable $listener The invalid callable
+     * @param \Exception $previous
+     */
     public function __construct($listener, \Exception $previous = null) {
         is_callable($listener, false, $callable_name);
 
