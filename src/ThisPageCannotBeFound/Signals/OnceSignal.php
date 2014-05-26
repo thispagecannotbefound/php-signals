@@ -30,7 +30,7 @@ class OnceSignal implements OnceSignalInterface {
     );
 
     /**
-     * @var Slot[]
+     * @var SlotInterface[]
      */
     protected $slots = array();
 
@@ -44,14 +44,14 @@ class OnceSignal implements OnceSignalInterface {
      * interface names, or native types, such as "array" or "boolean". This will
      * validate the types of the dispatch() arguments.
      *
-     * @param mixed ... Value types
+     * @param array $types Value types
      * @throws InvalidTypeException
      */
-    public function __construct() {
-        $types = func_get_args();
-
+    public function __construct(array $types = array()) {
         foreach ($types as $type) {
-            if (!class_exists($type) && !interface_exists($type) && !isset(self::$nativeTypes[$type])) {
+            if (!isset(self::$nativeTypes[$type]) &&
+                    !class_exists($type) &&
+                    !interface_exists($type)) {
                 throw new InvalidTypeException($type, array_keys(self::$nativeTypes));
             }
         }
@@ -80,28 +80,8 @@ class OnceSignal implements OnceSignalInterface {
      */
     public function dispatch() {
         $args = func_get_args();
-        $numArgs = count($args);
-        $numTypes = count($this->types);
-
-        if ($numArgs < $numTypes) {
-            throw new MissingArgumentsException($numTypes, $numArgs);
-        }
-
-        $this->validateArgTypes($args, $numTypes);
-
-        foreach ($this->slots as $slot) {
-            $callback = $slot->getListener();
-
-            if ($slot->getOnce()) {
-                $this->remove($callback);
-            }
-
-            if (empty($args)) {
-                call_user_func($callback);
-            } else {
-                call_user_func_array($callback, $args);
-            }
-        }
+        $this->validateArgTypes($args);
+        $this->executeListeners($this->slots, $args);
     }
 
     /**
@@ -143,11 +123,24 @@ class OnceSignal implements OnceSignalInterface {
     /* HIDDEN METHODS */
 
     /**
+     * @param SlotInterface[] $slots
+     */
+    protected function executeListeners(array $slots, array $args) {
+        foreach ($this->slots as $index => $slot) {
+            if ($slot->getOnce()) {
+                unset($this->slots[$index]);
+            }
+
+            $slot->execute($args);
+        }
+    }
+
+    /**
      * Returns the slot that is associated with this listener.
      *
      * @param callable $listener
      *
-     * @return Slot
+     * @return SlotInterface
      */
     protected function getSlot($listener) {
         foreach ($this->slots as $slot) {
@@ -162,7 +155,7 @@ class OnceSignal implements OnceSignalInterface {
      *
      * @param callable $listener
      * @param boolean $once
-     * @return Slot
+     * @return SlotInterface
      * @throws ListenerNotCallableException
      */
     protected function registerListener($listener, $once) {
@@ -204,7 +197,17 @@ class OnceSignal implements OnceSignalInterface {
      * @throws MissingArgumentsException
      * @throws ValueTypeMismatchException
      */
-    protected function validateArgTypes(array $args, $numTypes) {
+    protected function validateArgTypes(array $args) {
+        if (empty($this->types)) {
+            return;
+        }
+
+        $numTypes = count($this->types);
+
+        if (count($args) < $numTypes) {
+            throw new MissingArgumentsException($numTypes, count($args));
+        }
+
         for ($i = 0; $i < $numTypes; $i++) {
             $arg = $args[$i];
             $type = $this->types[$i];

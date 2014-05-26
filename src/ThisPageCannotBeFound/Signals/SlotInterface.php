@@ -10,6 +10,15 @@ namespace ThisPageCannotBeFound\Signals;
 interface SlotInterface {
 
     /**
+     * Executes the listener, passing the arguments.
+     *
+     * @param array $args Values to pass to the listener
+     *
+     * @return mixed Return value of executed listener
+     */
+    public function execute(array $args);
+
+    /**
      * Returns the valid callable.
      *
      * @return callable

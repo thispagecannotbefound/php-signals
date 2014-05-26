@@ -45,4 +45,15 @@ class SignalTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(3, $called);
     }
 
+    /**
+     * @test
+     * @expectedException \ThisPageCannotBeFound\Signals\Exception\CannotAddListenerException
+     */
+    public function addThenAddOnceSameShouldThrow() {
+        $listener = Listeners::_closureIncrementsCalled();
+
+        $this->signal->add($listener);
+        $this->signal->addOnce($listener);
+    }
+
 }

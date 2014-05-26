@@ -57,6 +57,18 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
     /**
      * @test
      */
+    public function addOnceTwiceShouldReturnSameSlot() {
+        $listener = Listeners::_closureIncrementsCalled();
+
+        $first = $this->signal->addOnce($listener);
+        $second = $this->signal->addOnce($listener);
+
+        $this->assertSame($first, $second);
+    }
+
+    /**
+     * @test
+     */
     public function dispatchNoListenersShouldBeSilent() {
         $this->signal->dispatch();
     }
@@ -85,7 +97,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      * @expectedException \ThisPageCannotBeFound\Signals\Exception\MissingArgumentsException
      */
     public function dispatchNoTypeArgCountMatchShouldThrow() {
-        $this->signal = new OnceSignal('stdClass');
+        $this->signal = new OnceSignal(array('stdClass'));
         $this->signal->dispatch();
     }
 
@@ -94,7 +106,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      * @expectedException \ThisPageCannotBeFound\Signals\Exception\ValueTypeMismatchException
      */
     public function dispatchNativeTypeNoMatchShouldThrow() {
-        $this->signal = new OnceSignal('boolean');
+        $this->signal = new OnceSignal(array('boolean'));
         $this->signal->dispatch(123);
     }
 
@@ -103,7 +115,15 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      * @expectedException \ThisPageCannotBeFound\Signals\Exception\ValueTypeMismatchException
      */
     public function dispatchClassTypeNoMatchShouldThrow() {
-        $this->signal = new OnceSignal('Iterator');
+        $this->signal = new OnceSignal(array('Iterator'));
+        $this->signal->dispatch(new \stdClass());
+    }
+
+    /**
+     * @test
+     */
+    public function dispatchClassTypeMatchShouldBeSuccessul() {
+        $this->signal = new OnceSignal(array('stdClass'));
         $this->signal->dispatch(new \stdClass());
     }
 
@@ -187,21 +207,21 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      * @expectedException \ThisPageCannotBeFound\Signals\Exception\InvalidTypeException
      */
     public function __constructInvalidTypeShouldThrow() {
-        new OnceSignal('foo-bar');
+        new OnceSignal(array('foo-bar'));
     }
 
     /**
      * @test
      */
     public function __constructExistingClassesInterfacesShouldAccept() {
-        new OnceSignal('ArrayIterator', 'Iterator');
+        new OnceSignal(array('ArrayIterator', 'Iterator'));
     }
 
     /**
      * @test
      */
     public function __constructNativeTypesShouldAccept() {
-        new OnceSignal('array', 'boolean', 'float', 'integer', 'object', 'resource', 'string');
+        new OnceSignal(array('array', 'boolean', 'float', 'integer', 'object', 'resource', 'string'));
     }
 
 }
