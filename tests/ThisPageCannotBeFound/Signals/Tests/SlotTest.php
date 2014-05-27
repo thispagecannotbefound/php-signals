@@ -4,6 +4,7 @@ namespace ThisPageCannotBeFound\Signals\Tests;
 
 use PHPUnit_Framework_TestCase;
 use ThisPageCannotBeFound\Signals\Slot;
+use ThisPageCannotBeFound\Signals\Tests\Support\Listeners;
 
 /**
  * @author Abel de Beer <abel@thispagecannotbefound.com>
@@ -14,7 +15,7 @@ class SlotTest extends PHPUnit_Framework_TestCase {
      * @test
      */
     public function listenerIsObjectShouldReturnListener() {
-        $listener = Support\Listeners::_closureIncrementsCalled();
+        $listener = Listeners::_closureIncrementsCalled();
 
         $resolved = $this->resolveListener($listener);
 
@@ -25,7 +26,7 @@ class SlotTest extends PHPUnit_Framework_TestCase {
      * @test
      */
     public function noResolverShouldReturnUnresolvedListener() {
-        $listener = Support\Listeners::_arrayStringCallback();
+        $listener = Listeners::_arrayStringCallback();
 
         $resolved = $this->resolveListener($listener);
 
@@ -36,7 +37,7 @@ class SlotTest extends PHPUnit_Framework_TestCase {
      * @test
      */
     public function noResolverObjectArrayShouldReturnListener() {
-        $listener = Support\Listeners::_arrayObjectCallback();
+        $listener = Listeners::_arrayObjectCallback();
 
         $resolved = $this->resolveListener($listener);
 
@@ -47,24 +48,32 @@ class SlotTest extends PHPUnit_Framework_TestCase {
      * @test
      */
     public function hasResolverStringArrayShouldReturnResolved() {
-        $listener = Support\Listeners::_arrayStringCallback();
+        $listener = Listeners::_arrayStringCallback();
 
         $resolved = $this->resolveListener($listener, $this->getBasicResolver());
 
         $this->assertNotSame($listener, $resolved);
-        $this->assertInstanceOf(Support\Listeners::__CLASS, $resolved[0]);
+        $this->assertInstanceOf(Listeners::__CLASS, $resolved[0]);
     }
 
     /**
      * @test
      */
     public function hasResolverStringShouldReturnResolved() {
-        $listener = Support\Listeners::_stringCallback();
+        $listener = Listeners::_stringCallback();
 
         $resolved = $this->resolveListener($listener, $this->getBasicResolver());
 
         $this->assertNotSame($listener, $resolved);
-        $this->assertInstanceOf(Support\Listeners::__CLASS, $resolved[0]);
+        $this->assertInstanceOf(Listeners::__CLASS, $resolved[0]);
+    }
+
+    /**
+     * @test
+     * @expectedException \ThisPageCannotBeFound\Signals\Exception\ResolverNotCallableException
+     */
+    public function setResolverInvalidCallableShouldThrow() {
+        $this->resolveListener(Listeners::_stringCallback(), 'foo-bar-baz');
     }
 
     /* HELPER METHODS */

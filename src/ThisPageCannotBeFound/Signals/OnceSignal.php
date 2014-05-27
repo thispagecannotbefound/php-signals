@@ -79,9 +79,13 @@ class OnceSignal implements OnceSignalInterface {
      * @return void
      */
     public function dispatch() {
+        if (empty($this->slots)) {
+            return;
+        }
+
         $args = func_get_args();
         $this->validateArgTypes($args);
-        $this->executeListeners($this->slots, $args);
+        $this->executeListeners($args);
     }
 
     /**
@@ -101,13 +105,12 @@ class OnceSignal implements OnceSignalInterface {
      * @return SlotInterface The removed Slot
      */
     public function remove($listener) {
-        $slot = $this->getSlot($listener);
+        foreach ($this->slots as $index => $slot) {
+            if ($slot->getListener() === $listener) {
+                unset($this->slots[$index]);
 
-        if ($slot) {
-            $index = array_search($slot, $this->slots, true);
-            unset($this->slots[$index]);
-
-            return $slot;
+                return $slot;
+            }
         }
     }
 
@@ -123,9 +126,11 @@ class OnceSignal implements OnceSignalInterface {
     /* HIDDEN METHODS */
 
     /**
-     * @param SlotInterface[] $slots
+     * Execute the listeners for each slot.
+     *
+     * @param array $args
      */
-    protected function executeListeners(array $slots, array $args) {
+    protected function executeListeners(array $args) {
         foreach ($this->slots as $index => $slot) {
             if ($slot->getOnce()) {
                 unset($this->slots[$index]);
@@ -156,18 +161,15 @@ class OnceSignal implements OnceSignalInterface {
      * @param callable $listener
      * @param boolean $once
      * @return SlotInterface
-     * @throws ListenerNotCallableException
      */
     protected function registerListener($listener, $once) {
-        if (!is_callable($listener)) {
-            throw new ListenerNotCallableException($listener);
+        $existing = $this->registrationPossible($listener, $once);
+
+        if ($existing) {
+            return $existing;
         }
 
-        if ($this->registrationPossible($listener, $once)) {
-            return $this->slots[] = new Slot($listener, $once);
-        }
-
-        return $this->getSlot($listener);
+        return $this->slots[] = new Slot($listener, $once);
     }
 
     /**
@@ -175,19 +177,22 @@ class OnceSignal implements OnceSignalInterface {
      *
      * @param callable $listener
      * @param boolean $once
-     * @return boolean
+     * @return SlotInterface Existing slot
      * @throws CannotAddListenerException
+     * @throws ListenerNotCallableException
      */
     protected function registrationPossible($listener, $once) {
+        if (!is_callable($listener)) {
+            throw new ListenerNotCallableException($listener);
+        }
+
         $existing = $this->getSlot($listener);
 
-        if (!$existing) {
-            return true;
-        } else if ($existing->getOnce() !== $once) {
+        if ($existing && $existing->getOnce() !== $once) {
             throw new CannotAddListenerException('You cannot addOnce() then add() the same listener without removing the relationship first.');
         }
 
-        return false;
+        return $existing;
     }
 
     /**

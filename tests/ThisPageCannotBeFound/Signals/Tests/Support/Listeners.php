@@ -29,19 +29,54 @@ class Listeners {
         };
     }
 
+    /**
+     * @return array
+     */
     public static function _arrayStringCallback() {
         return array(__CLASS__, 'exampleListener');
     }
 
+    /**
+     * @return array
+     */
     public static function _arrayObjectCallback() {
         return array(new self(), 'exampleListener');
     }
 
+    /**
+     * @return string
+     */
     public static function _stringCallback() {
         return __CLASS__ . '::exampleListener';
     }
 
+    /**
+     * @return string Fully qualified method name
+     */
     public function exampleListener() {
+        return __METHOD__;
+    }
+
+    /* DUMMY LISTENERS */
+
+    /**
+     * @return string Callable as fully qualified name
+     */
+    public static function a() {
+        return __METHOD__;
+    }
+
+    /**
+     * @return string Callable as fully qualified name
+     */
+    public static function b() {
+        return __METHOD__;
+    }
+
+    /**
+     * @return string Callable as fully qualified name
+     */
+    public static function c() {
         return __METHOD__;
     }
 

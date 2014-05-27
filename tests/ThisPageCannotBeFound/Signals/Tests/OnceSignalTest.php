@@ -34,7 +34,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
     public function addOnceShouldReturnSlot() {
         $interface = 'ThisPageCannotBeFound\Signals\SlotInterface';
 
-        $slot = $this->signal->addOnce('sprintf');
+        $slot = $this->signal->addOnce(Listeners::a());
 
         $this->assertInstanceOf($interface, $slot);
     }
@@ -58,7 +58,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      * @test
      */
     public function addOnceTwiceShouldReturnSameSlot() {
-        $listener = Listeners::_closureIncrementsCalled();
+        $listener = Listeners::a();
 
         $first = $this->signal->addOnce($listener);
         $second = $this->signal->addOnce($listener);
@@ -98,6 +98,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      */
     public function dispatchNoTypeArgCountMatchShouldThrow() {
         $this->signal = new OnceSignal(array('stdClass'));
+        $this->signal->addOnce(Listeners::a());
         $this->signal->dispatch();
     }
 
@@ -107,6 +108,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      */
     public function dispatchNativeTypeNoMatchShouldThrow() {
         $this->signal = new OnceSignal(array('boolean'));
+        $this->signal->addOnce(Listeners::a());
         $this->signal->dispatch(123);
     }
 
@@ -116,6 +118,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      */
     public function dispatchClassTypeNoMatchShouldThrow() {
         $this->signal = new OnceSignal(array('Iterator'));
+        $this->signal->addOnce(Listeners::a());
         $this->signal->dispatch(new \stdClass());
     }
 
@@ -124,6 +127,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      */
     public function dispatchClassTypeMatchShouldBeSuccessul() {
         $this->signal = new OnceSignal(array('stdClass'));
+        $this->signal->addOnce(Listeners::a());
         $this->signal->dispatch(new \stdClass());
     }
 
@@ -133,9 +137,9 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
     public function getNumListenersShouldReturnListenerCount() {
         $this->assertEquals(0, $this->signal->getNumListeners());
 
-        $this->signal->addOnce('print_r');
-        $this->signal->addOnce('printf');
-        $this->signal->addOnce('sprintf');
+        $this->signal->addOnce(Listeners::a());
+        $this->signal->addOnce(Listeners::b());
+        $this->signal->addOnce(Listeners::c());
 
         $this->assertEquals(3, $this->signal->getNumListeners());
 
@@ -148,7 +152,7 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      * @test
      */
     public function removeNoListenersShouldBeSilent() {
-        $this->signal->remove('sprintf');
+        $this->signal->remove(Listeners::a());
     }
 
     /**
@@ -156,9 +160,10 @@ class OnceSignalTest extends PHPUnit_Framework_TestCase {
      */
     public function removeShouldReturnRemovedSlot() {
         $interface = 'ThisPageCannotBeFound\Signals\SlotInterface';
+        $listener = Listeners::a();
 
-        $added = $this->signal->addOnce('sprintf');
-        $removed = $this->signal->remove('sprintf');
+        $added = $this->signal->addOnce($listener);
+        $removed = $this->signal->remove($listener);
 
         $this->assertInstanceOf($interface, $removed);
         $this->assertSame($added, $removed);

@@ -52,9 +52,9 @@ class Slot implements SlotInterface {
 
         if (empty($args)) {
             return call_user_func($callback);
-        } else {
-            return call_user_func_array($callback, $args);
         }
+
+        return call_user_func_array($callback, $args);
     }
 
     /**
@@ -76,12 +76,27 @@ class Slot implements SlotInterface {
     }
 
     /**
+     * Sets the listener resolver, a factory for uninitialized callables.
+     *
+     * @param callable $resolver
+     */
+    public function setResolver($resolver) {
+        if (!is_callable($resolver)) {
+            throw new Exception\ResolverNotCallableException($resolver);
+        }
+
+        $this->resolver = $resolver;
+    }
+
+    /* HIDDEN METHODS */
+
+    /**
      * If the listener is not a valid callback (e.g. a string like "Class:method"),
      * this method will use the resolver
      *
      * @return callable
      */
-    public function resolveListener() {
+    protected function resolveListener() {
         if (isset($this->resolved)) {
             return $this->resolved;
         }
@@ -104,19 +119,6 @@ class Slot implements SlotInterface {
         }
 
         return $this->resolved = $listener;
-    }
-
-    /**
-     * Sets the listener resolver, a factory for uninitialized callables.
-     *
-     * @param callable $resolver
-     */
-    public function setResolver($resolver) {
-        if (!is_callable($resolver)) {
-            throw new Exception\ResolverNotCallableException($resolver);
-        }
-
-        $this->resolver = $resolver;
     }
 
 }
